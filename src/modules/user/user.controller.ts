@@ -47,7 +47,56 @@ const loginUser = catchAsynce(
   },
 );
 
+const getMyProfileController = catchAsynce(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = await userServices.getMyProfileService(req.user?.id as string);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "User Profile fetch Successfully",
+      data: { user },
+    });
+  },
+);
+
+const getAllUserController = catchAsynce(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const users = await userServices.getAllUserService();
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "All user retrieve",
+      data: { users },
+    });
+  },
+);
+
+const updateProfileController = catchAsynce(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id as string;
+    const userRole = req.user?.role as string;
+    const payload = req.body;
+    const udpateedProfile = await userServices.updateProfileService(
+      userId,
+      userRole,
+      payload,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "User Profile Update Succesfully",
+      data: { udpateedProfile },
+    });
+  },
+);
+
 export const userController = {
   registerUser,
   loginUser,
+  getMyProfileController,
+  getAllUserController,
+  updateProfileController,
 };

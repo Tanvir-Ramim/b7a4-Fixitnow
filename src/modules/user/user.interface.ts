@@ -8,6 +8,13 @@ export type IRegisterUser = {
   profilePhoto?: string;
 };
 
+export type IProfileUpdate = {
+  name?: string;
+  profilePhoto?: string;
+  bio?: string;
+  experience: number;
+  skills?:string[],
+};
 
 export interface ILoginUser {
   email: string;

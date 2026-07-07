@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import AppError from "../../errors/AppError";
 import { prisma } from "../../lib/primsa";
-import { ILoginUser, IRegisterUser } from "./user.interface";
+import { ILoginUser, IProfileUpdate, IRegisterUser } from "./user.interface";
 import httpStatus from "http-status";
 import config from "../../config";
 import { ActiveStatus, Role } from "../../../generated/prisma/enums";
@@ -92,7 +92,84 @@ const loginUserService = async (payload: ILoginUser) => {
   };
 };
 
+const getMyProfileService = async (userId: string) => {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    omit: {
+      password: true,
+    },
+    include: {
+      profile: true,
+    },
+  });
+
+  return user;
+};
+
+const getAllUserService = () => {
+  const users = prisma.user.findMany({
+    include: { profile: true },
+    omit: { password: true },
+  });
+  return users;
+};
+
+const updateProfileService = async (
+  userId: string,
+  userRole: string,
+  payload: IProfileUpdate,
+) => {
+  const { name, profilePhoto, bio, experience, skills } = payload;
+  //customer can not update experience and skill other wise technicion and admin  can update all..but customer can update only name profilephoto and bio
+  if (
+    userRole === Role.CUSTOMER &&
+    (experience !== undefined || skills !== undefined)
+  ) {
+    throw new AppError(
+      "Customer can not update experience and skill",
+      httpStatus.UNAUTHORIZED,
+    );
+  }
+
+  const existingProfile = await prisma.profile.findUnique({
+    where: {
+      userId,
+    },
+    select: {
+      skills: true,
+    },
+  });
+
+  const updatedSkills = [...(existingProfile?.skills ?? []), ...(skills ?? [])];
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      name,
+      profile: {
+        update: {
+          profilePhoto,
+          bio,
+          experience,
+          skills: updatedSkills,
+        },
+      },
+    },
+    omit: {
+      password: true,
+    },
+    include: {
+      profile: true,
+    },
+  });
+
+  return updatedUser;
+};
+
 export const userServices = {
   registerUserService,
   loginUserService,
+  getMyProfileService,
+  getAllUserService,
+  updateProfileService,
 };
