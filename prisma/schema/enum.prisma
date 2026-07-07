@@ -1,0 +1,10 @@
+enum ActiveStatus {
+  ACTIVE
+  BANNED
+}
+
+enum Role {
+  CUSTOMER
+  TECHNICIAN
+  ADMIN
+}
