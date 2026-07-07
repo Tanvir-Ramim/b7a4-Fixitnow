@@ -5,6 +5,8 @@ import { ILoginUser, IRegisterUser } from "./user.interface";
 import httpStatus from "http-status";
 import config from "../../config";
 import { ActiveStatus, Role } from "../../../generated/prisma/enums";
+import { jwtUtils } from "../../utils/jtw";
+import { SignOptions } from "jsonwebtoken";
 
 const registerUserService = async (payload: IRegisterUser) => {
   const { name, email, password, profilePhoto, role } = payload;
@@ -45,6 +47,52 @@ const registerUserService = async (payload: IRegisterUser) => {
   return user;
 };
 
+const loginUserService = async (payload: ILoginUser) => {
+  const { email, password } = payload;
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { email },
+  });
+
+  if (user.activeStatus === ActiveStatus.BANNED) {
+    throw new AppError(
+      "Your account has been block . Please contact admin",
+      httpStatus.FORBIDDEN,
+    );
+  }
+
+  const isPasswordMatched = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordMatched) {
+    throw new AppError("Password is incrorrectss", httpStatus.UNAUTHORIZED);
+  }
+
+  const jwtPayload = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+
+  const accessToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_access_secret,
+    config.jwt_access_expires_in as SignOptions,
+  );
+
+  const refreshToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_refresh_secret,
+    config.jwt_refresh_expires_in as SignOptions,
+  );
+
+  return {
+    accessToken,
+    refreshToken,
+  };
+};
+
 export const userServices = {
   registerUserService,
+  loginUserService,
 };

@@ -13,7 +13,7 @@ router.post(
 router.post(
   "/login",
   validateRequest(loginValidationSchema),
-  userController.registerUser,
+  userController.loginUser,
 );
 
 export const userRoutes = router;
