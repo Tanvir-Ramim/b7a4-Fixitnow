@@ -1,12 +1,8 @@
-import bcrypt from "bcryptjs";
+import { Role } from "../../../generated/prisma/enums";
 import AppError from "../../errors/AppError";
 import { prisma } from "../../lib/primsa";
-import { ILoginUser, IProfileUpdate, IRegisterUser } from "./user.interface";
+import { IProfileUpdate } from "./user.interface";
 import httpStatus from "http-status";
-import config from "../../config";
-import { ActiveStatus, Role } from "../../../generated/prisma/enums";
-import { jwtUtils } from "../../utils/jtw";
-import { SignOptions } from "jsonwebtoken";
 
 const getAllUserService = () => {
   const users = prisma.user.findMany({
@@ -183,7 +179,10 @@ const deleteAvailablityService = async (
   });
 
   if (!existingSlot) {
-    throw new AppError("Can not find this slot already deleted", httpStatus.FORBIDDEN);
+    throw new AppError(
+      "Can not find this slot already deleted",
+      httpStatus.FORBIDDEN,
+    );
   }
 
   const result = await prisma.technicianAvailability.delete({
