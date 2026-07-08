@@ -1,11 +1,11 @@
 model TechnicianAvailability {
-  id          String   @id @default(uuid())
-  slotDate    DateTime
-  startTime   String
-  endTime     String
+  id           String   @id @default(uuid())
+  slotDate     DateTime
+  startTime    String
+  endTime      String
   isSlotActive Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   profileId String
   profile   Profile @relation(fields: [profileId], references: [id])

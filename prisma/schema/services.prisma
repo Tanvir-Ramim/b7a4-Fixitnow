@@ -1,17 +1,18 @@
 model Services {
-  id              String   @id @default(uuid())
-  name             String
-  title           String
-  description     String?
-  price           Int
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String   @id @default(uuid())
+  name        String
+  title       String
+  description String?
+  price       Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  technicianId    String   
-  technician      User     @relation(fields: [technicianId], references: [id])
+  technicianId String
+  technician   User   @relation(fields: [technicianId], references: [id])
 
-  categoryId      String
-  category        Categories @relation(fields: [categoryId], references: [id])
+  categoryId String
+  category   Categories @relation(fields: [categoryId], references: [id])
 
+  booking Booking[]
 }

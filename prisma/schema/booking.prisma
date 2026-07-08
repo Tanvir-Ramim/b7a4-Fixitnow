@@ -1,0 +1,25 @@
+model Booking {
+  id          String   @id @default(uuid())
+  bookingDate DateTime
+  startTime   String
+  endTime     String
+
+  total_price      Int
+  customerNotes    String?
+  technicianNotes  String?
+  technicianAccept Boolean  @default(false)
+  address          String
+  isComplete       Boolean  @default(false)
+  isPayment        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  customerId String
+  customer   User   @relation("CustomerBookings", fields: [customerId], references: [id])
+
+  technicianId String
+  technician   User   @relation("TechnicianBookings", fields: [technicianId], references: [id])
+
+  serviceId String
+  service   Services @relation(fields: [serviceId], references: [id])
+}
