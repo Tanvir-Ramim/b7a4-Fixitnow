@@ -1,0 +1,9 @@
+model Categories {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  sortDescriptoin String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services    Services[]
+}

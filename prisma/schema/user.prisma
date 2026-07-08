@@ -6,6 +6,7 @@ model User {
   activeStatus ActiveStatus @default(ACTIVE)
   role         Role         @default(CUSTOMER)
   profile      Profile?
+  services     Services[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
