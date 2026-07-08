@@ -1,14 +1,12 @@
 model Booking {
   id          String   @id @default(uuid())
-  bookingDate DateTime
-  startTime   String
-  endTime     String
-
-  total_price      Int
+  bookingId         String                   @unique
+  bookingTime           TechnicianAvailability                     @relation(fields: [bookingId], references: [id])
   customerNotes    String?
   technicianNotes  String?
-  technicianAccept Boolean  @default(false)
-  address          String
+   address          String
+  technicianAccept TechnicianEnum  @default(INPROGRESS)
+ 
   isComplete       Boolean  @default(false)
   isPayment        Boolean  @default(false)
   createdAt        DateTime @default(now())

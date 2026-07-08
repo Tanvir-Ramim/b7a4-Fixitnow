@@ -39,9 +39,9 @@ const getAllServicesController = catchAsynce(
   async (req: Request, res: Response) => {
     const { categoryId, name, price } = req.query;
     const services = await serviceServices.getAllServicesService(
-      name as string,
-      categoryId as string,
-      price as string,
+      name as string | undefined,
+      categoryId as string | undefined,
+      price as string | undefined,
     );
 
     sendResponse(res, {

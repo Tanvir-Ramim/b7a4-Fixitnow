@@ -115,5 +115,4 @@ export const userController = {
   getSingleTechnicianController,
   addAvailabilityController,
   deleteAvailablityController,
-
 };

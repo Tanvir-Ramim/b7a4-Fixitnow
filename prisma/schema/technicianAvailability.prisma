@@ -9,4 +9,5 @@ model TechnicianAvailability {
 
   profileId String
   profile   Profile @relation(fields: [profileId], references: [id])
+  booking    Booking[]
 }

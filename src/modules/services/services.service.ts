@@ -45,7 +45,7 @@ const getAllServicesService = async (
   price?: string,
 ) => {
   const where: any = {
-    isActive: true,
+    isActive: true || false,
   };
 
   if (name) {
