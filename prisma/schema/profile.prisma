@@ -1,11 +1,12 @@
 model Profile {
-  id           String   @id @default(uuid())
-  profilePhoto String?
-  bio          String?
-  experience   Int      @default(0)
-  skills       String[]
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id])
+  id             String                   @id @default(uuid())
+  profilePhoto   String?
+  bio            String?
+  experience     Int                      @default(0)
+  skills         String[]
+  userId         String                   @unique
+  user           User                     @relation(fields: [userId], references: [id])
+  availabilities TechnicianAvailability[]
 
   @@map("profiles")
 }

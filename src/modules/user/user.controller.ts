@@ -93,10 +93,48 @@ const updateProfileController = catchAsynce(
   },
 );
 
+const getTechnicianController = catchAsynce(
+  async (req: Request, res: Response) => {
+    const { name, experience, skill } = req.query;
+
+    const technicians = await userServices.getTechnicianService(
+      experience ? Number(experience) : undefined,
+      skill as string | undefined,
+      name as string | undefined,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Technicians retrive successfully",
+      data: { technicians },
+    });
+  },
+);
+const getSingleTechnicianController = catchAsynce(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    console.log(id);
+
+    const singleTechnicians = await userServices.getSingleTechnicianService(
+      id as string,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Single Technicians retrive successfully",
+      data: { singleTechnicians },
+    });
+  },
+);
+
 export const userController = {
   registerUser,
   loginUser,
   getMyProfileController,
   getAllUserController,
   updateProfileController,
+  getTechnicianController,
+  getSingleTechnicianController,
 };

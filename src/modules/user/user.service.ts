@@ -166,10 +166,66 @@ const updateProfileService = async (
   return updatedUser;
 };
 
+const getTechnicianService = async (
+  experience?: number,
+  skill?: string,
+  name?: string,
+) => {
+  const where: any = {
+    role: "TECHNICIAN",
+  };
+
+  if (name) {
+    where.name = {
+      contains: name,
+      mode: "insensitive",
+    };
+  }
+
+  if (experience !== undefined) {
+    where.profile = {
+      ...where.profile,
+      experience,
+    };
+  }
+
+  if (skill) {
+    where.profile = {
+      ...where.profile,
+      skills: {
+        has: skill,
+      },
+    };
+  }
+
+  const technicians = await prisma.user.findMany({
+    where,
+    omit: { password: true },
+    include: {
+      profile: true,
+    },
+  });
+
+  return technicians;
+};
+const getSingleTechnicianService = async (userId: string) => {
+  const singleTechnicians = await prisma.user.findUniqueOrThrow({
+    where: {
+      role: "TECHNICIAN",
+      id: userId,
+    },
+    omit: { password: true },
+    include: { profile: true },
+  });
+  return singleTechnicians;
+};
+
 export const userServices = {
   registerUserService,
   loginUserService,
   getMyProfileService,
   getAllUserService,
   updateProfileService,
+  getTechnicianService,
+  getSingleTechnicianService,
 };

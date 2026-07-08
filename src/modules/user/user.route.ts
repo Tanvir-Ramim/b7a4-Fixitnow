@@ -30,4 +30,8 @@ router.put(
   userController.updateProfileController,
 );
 
+// public
+router.get("/technicians", userController.getTechnicianController);
+router.get("/technicians/:id", userController.getSingleTechnicianController);
+
 export const userRoutes = router;
