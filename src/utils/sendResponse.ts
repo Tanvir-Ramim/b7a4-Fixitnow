@@ -1,4 +1,4 @@
-import {  Response } from "express";
+import { Response } from "express";
 
 type TMeta = {
   page: number;
@@ -10,7 +10,7 @@ type TRespoonseData<T> = {
   success: boolean;
   statusCode: number;
   message: string;
-  data: T;
+  data?: T;
   mete?: TMeta;
 };
 

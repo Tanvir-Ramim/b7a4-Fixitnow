@@ -8,104 +8,6 @@ import { ActiveStatus, Role } from "../../../generated/prisma/enums";
 import { jwtUtils } from "../../utils/jtw";
 import { SignOptions } from "jsonwebtoken";
 
-const registerUserService = async (payload: IRegisterUser) => {
-  const { name, email, password, profilePhoto, role } = payload;
-
-  const isUserExits = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (isUserExits) {
-    throw new AppError(
-      "User with this email already exits",
-      httpStatus.CONFLICT,
-    );
-  }
-
-  const hashedPassword = await bcrypt.hash(
-    password,
-    Number(config.bcrypt_salt_rounds),
-  );
-
-  const { password: _password, ...user } = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-      role: role ?? Role.CUSTOMER,
-      profile: {
-        create: {
-          profilePhoto,
-        },
-      },
-    },
-    include: {
-      profile: true,
-    },
-  });
-
-  return user;
-};
-
-const loginUserService = async (payload: ILoginUser) => {
-  const { email, password } = payload;
-
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { email },
-  });
-
-  if (user.activeStatus === ActiveStatus.BANNED) {
-    throw new AppError(
-      "Your account has been block . Please contact admin",
-      httpStatus.FORBIDDEN,
-    );
-  }
-
-  const isPasswordMatched = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordMatched) {
-    throw new AppError("Password is incrorrectss", httpStatus.UNAUTHORIZED);
-  }
-
-  const jwtPayload = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
-
-  const accessToken = jwtUtils.createToken(
-    jwtPayload,
-    config.jwt_access_secret,
-    config.jwt_access_expires_in as SignOptions,
-  );
-
-  const refreshToken = jwtUtils.createToken(
-    jwtPayload,
-    config.jwt_refresh_secret,
-    config.jwt_refresh_expires_in as SignOptions,
-  );
-
-  return {
-    accessToken,
-    refreshToken,
-  };
-};
-
-const getMyProfileService = async (userId: string) => {
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: userId },
-    omit: {
-      password: true,
-    },
-    include: {
-      profile: true,
-    },
-  });
-
-  return user;
-};
-
 const getAllUserService = () => {
   const users = prisma.user.findMany({
     include: { profile: true },
@@ -220,12 +122,85 @@ const getSingleTechnicianService = async (userId: string) => {
   return singleTechnicians;
 };
 
+//TechnicianAvailability
+
+const addAvailabilityService = async (
+  userId: string,
+  slotDate: Date,
+  startTime: string,
+  endTime: string,
+) => {
+  const profile = await prisma.profile.findUniqueOrThrow({ where: { userId } });
+  const existingSlot = await prisma.technicianAvailability.findFirst({
+    where: {
+      profileId: profile.id,
+      slotDate: new Date(slotDate),
+      startTime: startTime,
+      endTime: endTime,
+      isSlotActive: true,
+    },
+  });
+
+  if (existingSlot) {
+    throw new AppError(
+      "This time slot already exists for this date",
+      httpStatus.FORBIDDEN,
+    );
+  }
+
+  const availability = await prisma.technicianAvailability.create({
+    data: {
+      slotDate: new Date(slotDate),
+      startTime,
+      endTime,
+      profileId: profile.id,
+    },
+    include: {
+      profile: {
+        include: {
+          user: {
+            omit: { password: true },
+          },
+        },
+      },
+    },
+  });
+
+  return availability;
+};
+
+const deleteAvailablityService = async (
+  userId: string,
+  availabilityId: string,
+) => {
+  const profile = await prisma.profile.findUniqueOrThrow({ where: { userId } });
+
+  const existingSlot = await prisma.technicianAvailability.findFirst({
+    where: {
+      profileId: profile.id,
+      id: availabilityId,
+    },
+  });
+
+  if (!existingSlot) {
+    throw new AppError("Can not find this slot already deleted", httpStatus.FORBIDDEN);
+  }
+
+  const result = await prisma.technicianAvailability.delete({
+    where: {
+      profileId: profile?.id,
+      id: availabilityId,
+    },
+  });
+
+  console.log(result);
+};
+
 export const userServices = {
-  registerUserService,
-  loginUserService,
-  getMyProfileService,
   getAllUserService,
   updateProfileService,
   getTechnicianService,
   getSingleTechnicianService,
+  addAvailabilityService,
+  deleteAvailablityService,
 };

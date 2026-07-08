@@ -4,62 +4,6 @@ import { userServices } from "./user.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status";
 
-const registerUser = catchAsynce(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const payload = req.body;
-
-    const user = await userServices.registerUserService(payload);
-
-    sendResponse(res, {
-      success: true,
-      statusCode: httpStatus.OK,
-      message: "User Register Successfully",
-      data: { user },
-    });
-  },
-);
-
-const loginUser = catchAsynce(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const payload = req.body;
-    const { accessToken, refreshToken } =
-      await userServices.loginUserService(payload);
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "none",
-      maxAge: 1000 * 60 * 60 * 24, //24h hour
-    });
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "none",
-      maxAge: 1000 * 60 * 60 * 24 * 7, //7 day
-    });
-
-    sendResponse(res, {
-      success: true,
-      statusCode: httpStatus.OK,
-      message: "User Logged in successfully",
-      data: { accessToken, refreshToken },
-    });
-  },
-);
-
-const getMyProfileController = catchAsynce(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = await userServices.getMyProfileService(req.user?.id as string);
-
-    sendResponse(res, {
-      success: true,
-      statusCode: httpStatus.OK,
-      message: "User Profile fetch Successfully",
-      data: { user },
-    });
-  },
-);
-
 const getAllUserController = catchAsynce(
   async (req: Request, res: Response, next: NextFunction) => {
     const users = await userServices.getAllUserService();
@@ -114,7 +58,6 @@ const getTechnicianController = catchAsynce(
 const getSingleTechnicianController = catchAsynce(
   async (req: Request, res: Response) => {
     const { id } = req.params;
-    console.log(id);
 
     const singleTechnicians = await userServices.getSingleTechnicianService(
       id as string,
@@ -129,12 +72,48 @@ const getSingleTechnicianController = catchAsynce(
   },
 );
 
+const addAvailabilityController = catchAsynce(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id as string;
+    const { slotDate, startTime, endTime } = req.body;
+    const technician = await userServices.addAvailabilityService(
+      userId,
+      new Date(slotDate),
+      startTime,
+      endTime,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Add Available slot in technician profile",
+      data: { technician },
+    });
+  },
+);
+
+const deleteAvailablityController = catchAsynce(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const availabilityId = req.params.id;
+    await userServices.deleteAvailablityService(
+      userId as string,
+      availabilityId as string,
+    );
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Your Availablity Slot delete Suceesfully",
+    });
+  },
+);
+
 export const userController = {
-  registerUser,
-  loginUser,
-  getMyProfileController,
   getAllUserController,
   updateProfileController,
   getTechnicianController,
   getSingleTechnicianController,
+  addAvailabilityController,
+  deleteAvailablityController,
+
 };
