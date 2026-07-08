@@ -38,7 +38,7 @@ const deleteServiceController = catchAsynce(
 const getAllServicesController = catchAsynce(
   async (req: Request, res: Response) => {
     const { categoryId, name, price } = req.query;
-    await serviceServices.getAllServicesService(
+    const services = await serviceServices.getAllServicesService(
       name as string,
       categoryId as string,
       price as string,
@@ -47,7 +47,8 @@ const getAllServicesController = catchAsynce(
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
-      message: "Service  retrive Successfully",
+      message: "Services retrive Successfully",
+      data: { services },
     });
   },
 );
