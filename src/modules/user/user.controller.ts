@@ -3,6 +3,7 @@ import { catchAsynce } from "../../utils/catchAsync";
 import { userServices } from "./user.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status";
+import AppError from "../../errors/AppError";
 
 const getAllUserController = catchAsynce(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -76,9 +77,20 @@ const addAvailabilityController = catchAsynce(
   async (req: Request, res: Response) => {
     const userId = req.user?.id as string;
     const { slotDate, startTime, endTime } = req.body;
+    const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+
+    if (!dateRegex.test(slotDate)) {
+      throw new AppError(
+        "Invalid date format. Please use DD/MM/YYYY.",
+        httpStatus.BAD_REQUEST,
+      );
+    }
+
+    const [day, month, year] = slotDate.split("/").map(Number);
+    const date = new Date(year, month - 1, day);
     const technician = await userServices.addAvailabilityService(
       userId,
-      new Date(slotDate),
+      date,
       startTime,
       endTime,
     );

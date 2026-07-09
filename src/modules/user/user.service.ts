@@ -126,11 +126,16 @@ const addAvailabilityService = async (
   startTime: string,
   endTime: string,
 ) => {
-  const profile = await prisma.profile.findUniqueOrThrow({ where: { userId } });
+  const profile = await prisma.profile.findUnique({ where: { userId } });
+
+  if (!profile) {
+    throw new AppError("profile not found", httpStatus.FORBIDDEN);
+  }
+
   const existingSlot = await prisma.technicianAvailability.findFirst({
     where: {
       profileId: profile.id,
-      slotDate: new Date(slotDate),
+      slotDate: slotDate,
       startTime: startTime,
       endTime: endTime,
       isSlotActive: true,
@@ -169,7 +174,11 @@ const deleteAvailablityService = async (
   userId: string,
   availabilityId: string,
 ) => {
-  const profile = await prisma.profile.findUniqueOrThrow({ where: { userId } });
+  const profile = await prisma.profile.findUnique({ where: { userId } });
+
+  if (!profile) {
+    throw new AppError("profile not found", httpStatus.FORBIDDEN);
+  }
 
   const existingSlot = await prisma.technicianAvailability.findFirst({
     where: {
