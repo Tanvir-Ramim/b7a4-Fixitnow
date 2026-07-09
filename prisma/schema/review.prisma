@@ -1,0 +1,20 @@
+model Review {
+  id         String   @id @default(uuid())
+  rating     Int
+  comment    String?
+  isPublic   Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+
+  reviewerId String
+  reviewer   User @relation("ReviewsWritten", fields: [reviewerId], references: [id])
+
+
+  technicianId String
+  technician   User @relation("ReviewsReceived", fields: [technicianId], references: [id])
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id])
+}

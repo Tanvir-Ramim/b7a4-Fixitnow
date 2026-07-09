@@ -3,6 +3,7 @@ import { paymentService } from "./payment.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status";
 import { catchAsynce } from "../../utils/catchAsync";
+import { Role } from "../../../generated/prisma/enums";
 
 const createCheckoutSession = catchAsynce(
   async (req: Request, res: Response) => {
@@ -36,19 +37,27 @@ const stripeWebhook = catchAsynce(async (req: Request, res: Response) => {
 });
 
 const getPaymentsHistory = catchAsynce(async (req: Request, res: Response) => {
-  const userId = req.query.userId;
+   const role=req.user?.role
+   const authUserId=req.user?.id
 
-  const result = await paymentService.getPaymentsHistorySerivces(
-    userId as string ,
-  );
+  let userId: string | undefined;
+
+  if (role === Role.ADMIN) {
+    userId = req.query.userId as string | undefined;
+  } else {
+    userId = authUserId;
+  }
+
+  const result = await paymentService.getPaymentsHistorySerivces(userId);
 
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     message: "Payment history retrieved successfully",
-    data: {result},
+    data: result,
   });
 });
+
 
 const getSinglePaymentHistory = catchAsynce(
   async (req: Request, res: Response) => {
@@ -60,7 +69,7 @@ const getSinglePaymentHistory = catchAsynce(
       success: true,
       statusCode: httpStatus.OK,
       message: "Single Payment  retrieved successfully",
-      data: {result},
+      data: { result },
     });
   },
 );

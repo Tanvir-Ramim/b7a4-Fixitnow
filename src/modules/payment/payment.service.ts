@@ -139,29 +139,22 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
   }
 };
 
-const getPaymentsHistorySerivces = async (userId: string) => {
-  const where: Prisma.PaymentWhereInput = {};
-
-  if (userId) {
-    where.userId = userId;
-  }
-
-  const paymentHistory = await prisma.payment.findMany({
-    where,
+const getPaymentsHistorySerivces = async (userId?: string) => {
+  return await prisma.payment.findMany({
+    where: userId
+      ? {
+          userId,
+        }
+      : {},
     include: {
       booking: true,
-      user: {
-        omit: {
-          password: true,
-        },
-      },
+    },
+    orderBy: {
+      createdAt: "desc",
     },
   });
-
-  return paymentHistory;
 };
 const getSinglePaymentHisotry = async (id: string) => {
-
   const singlePayment = await prisma.payment.findUnique({
     where: {
       id,

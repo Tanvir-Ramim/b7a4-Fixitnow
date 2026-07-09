@@ -27,14 +27,19 @@ const addBookingController = catchAsynce(
 
 const getAllBookingController = catchAsynce(
   async (req: Request, res: Response) => {
-    const { customerId, technicianId } = req.query;
     const role = req.user?.role;
+    const authUserId = req.user?.id;
 
-    if (role === Role.CUSTOMER && !customerId) {
-      throw new AppError("Customer Id Requied", httpStatus.FORBIDDEN);
-    }
-    if (role === Role.TECHNICIAN && !technicianId) {
-      throw new AppError("technician Id Requied", httpStatus.FORBIDDEN);
+    let customerId: string | undefined;
+    let technicianId: string | undefined;
+
+    if (role === Role.ADMIN) {
+      customerId = req.query.customerId as string | undefined;
+      technicianId = req.query.technicianId as string | undefined;
+    } else if (role === Role.CUSTOMER) {
+      customerId = authUserId;
+    } else if (role === Role.TECHNICIAN) {
+      technicianId = authUserId;
     }
 
     const result = await bookingService.getAllBooking(
@@ -50,7 +55,6 @@ const getAllBookingController = catchAsynce(
     });
   },
 );
-
 const getSingleBookingController = catchAsynce(
   async (req: Request, res: Response) => {
     const { id } = req.params;

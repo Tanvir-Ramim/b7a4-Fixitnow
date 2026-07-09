@@ -17,5 +17,9 @@ model User {
 
   payment      Payment[]
 
+
+  reviewsWritten Review[] @relation("ReviewsWritten")    
+  reviewsReceived Review[] @relation("ReviewsReceived")   
+
   @@map("users")
 }

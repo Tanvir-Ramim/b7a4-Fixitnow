@@ -1,3 +1,4 @@
+import { Prisma } from "../../../generated/prisma/browser";
 import { TechnicianEnum } from "../../../generated/prisma/enums";
 import AppError from "../../errors/AppError";
 import { prisma } from "../../lib/primsa";
@@ -66,30 +67,35 @@ const addBookingService = async (payload: IBooking, userId: string) => {
   return booking;
 };
 
-const getAllBooking = async (customerId: string, technicianId: string) => {
-  const where: any = {};
+const getAllBooking = async (customerId?: string, technicianId?: string) => {
+  const where: Prisma.BookingWhereInput = {};
+
   if (customerId) {
     where.customerId = customerId;
   }
+
   if (technicianId) {
     where.technicianId = technicianId;
   }
 
-  const allBooking = await prisma.booking.findMany({
+  return await prisma.booking.findMany({
     where,
     include: {
       bookingTime: true,
       service: true,
       customer: {
-        omit: { password: true },
+        omit: {
+          password: true,
+        },
       },
-      technician: true,
+      technician: {
+        omit: {
+          password: true,
+        },
+      },
     },
   });
-
-  return allBooking;
 };
-
 const getSingleBooking = async (id: string) => {
   const singleBooking = await prisma.booking.findUnique({
     where: { id },

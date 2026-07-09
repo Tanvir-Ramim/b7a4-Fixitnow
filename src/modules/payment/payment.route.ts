@@ -13,7 +13,7 @@ router.post(
 
 router.get(
   "/history",
-  auth(Role.CUSTOMER, Role.TECHNICIAN, Role.ADMIN),
+  auth(Role.CUSTOMER, Role.ADMIN),
   paymentController.getPaymentsHistory,
 );
 
