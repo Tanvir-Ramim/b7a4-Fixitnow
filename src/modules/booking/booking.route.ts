@@ -32,5 +32,10 @@ router.patch(
   auth(Role.TECHNICIAN),
   bookingController.technicianAcceptBookingController,
 );
+router.patch(
+  "/:bookingId/complete",
+  auth(Role.TECHNICIAN),
+  bookingController.technicianCompleteService,
+);
 
 export const bookingRoute = router;

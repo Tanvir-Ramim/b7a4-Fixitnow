@@ -178,9 +178,50 @@ const technicianAcceptBooking = async (
     return updatedBooking;
   });
 };
+
+const technicianCompleteService = async (
+  bookingId: string,
+  userId: string,
+  isComplete: boolean,
+) => {
+  const isBookingExits = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      technician: true,
+    },
+  });
+
+  if (isBookingExits?.technician.id !== userId) {
+    throw new AppError("This is not your booking", httpStatus.CONFLICT);
+  }
+
+  if (!isBookingExits?.isPayment) {
+    throw new AppError(
+      "You can not change Complete .beacause of payment is due",
+      httpStatus.CONFLICT,
+    );
+  }
+
+  const booking = await prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      isComplete,
+    },
+    include: {
+      technician: {
+        omit: { password: false },
+      },
+      bookingTime: true,
+    },
+  });
+
+  return booking;
+};
+
 export const bookingService = {
   addBookingService,
   getAllBooking,
   getSingleBooking,
   technicianAcceptBooking,
+  technicianCompleteService,
 };

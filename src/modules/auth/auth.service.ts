@@ -100,7 +100,7 @@ const getMyProfileAuthService = async (userId: string) => {
     },
     include: {
       profile: {
-        include:{availabilities:true}
+        include: { availabilities: true },
       },
     },
   });
@@ -108,8 +108,27 @@ const getMyProfileAuthService = async (userId: string) => {
   return user;
 };
 
+const userBanServices = async (userId: string, activeStatus: ActiveStatus) => {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      activeStatus,
+    },
+    include: {
+      profile: true,
+    },
+    omit: {
+      password: true,
+    },
+  });
+  return user;
+};
+
+
+
 export const authServices = {
   registerAuthService,
   loginAuthService,
   getMyProfileAuthService,
+  userBanServices,
 };

@@ -22,5 +22,6 @@ router.get(
   auth(Role.ADMIN, Role.TECHNICIAN, Role.CUSTOMER),
   AuthController.getMyProfileController,
 );
+router.put("/update", auth(Role.ADMIN), AuthController.userBanController);
 
 export const authRoute = router;

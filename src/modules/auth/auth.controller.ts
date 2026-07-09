@@ -3,6 +3,7 @@ import { catchAsynce } from "../../utils/catchAsync";
 import { authServices } from "./auth.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status";
+import AppError from "../../errors/AppError";
 
 const registerUser = catchAsynce(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -61,9 +62,33 @@ const getMyProfileController = catchAsynce(
     });
   },
 );
+const userBanController = catchAsynce(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { userId, activeStatus } = req.body;
+    console.log(userId, activeStatus);
+    if (!activeStatus || !userId) {
+      throw new AppError(
+        "User Id and Active Status Value Must Need",
+        httpStatus.BAD_REQUEST,
+      );
+    }
+    const user = await authServices.userBanServices(
+      userId as string,
+      activeStatus,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "User update Successfully",
+      data: { user },
+    });
+  },
+);
 
 export const AuthController = {
   registerUser,
   loginUser,
   getMyProfileController,
+  userBanController,
 };

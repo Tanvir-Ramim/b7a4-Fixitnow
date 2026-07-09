@@ -94,9 +94,38 @@ const technicianAcceptBookingController = catchAsynce(
   },
 );
 
+const technicianCompleteService = catchAsynce(
+  async (req: Request, res: Response) => {
+    const { isComplete } = req.body;
+    const { bookingId } = req.params;
+    const userId = req.user?.id;
+
+    if (!bookingId || typeof isComplete !== "boolean") {
+      throw new AppError(
+        "bookingId and isComplete are required",
+        httpStatus.BAD_REQUEST,
+      );
+    }
+
+    const result = await bookingService.technicianCompleteService(
+      bookingId as string,
+      userId!,
+      isComplete,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Booking status updated successfully",
+      data: result,
+    });
+  },
+);
+
 export const bookingController = {
   addBookingController,
   getAllBookingController,
   getSingleBookingController,
   technicianAcceptBookingController,
+  technicianCompleteService,
 };
