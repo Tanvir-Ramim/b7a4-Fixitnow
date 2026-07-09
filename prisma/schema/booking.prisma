@@ -20,4 +20,6 @@ model Booking {
 
   serviceId String
   service   Services @relation(fields: [serviceId], references: [id])
+
+  payment    Payment?
 }
