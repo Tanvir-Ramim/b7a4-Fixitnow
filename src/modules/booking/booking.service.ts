@@ -5,12 +5,38 @@ import { IBooking } from "./booking.interface";
 import httpStatus from "http-status";
 
 const addBookingService = async (payload: IBooking, userId: string) => {
-  const { customerNotes, address, technicianId, serviceId, slotID } = payload;
+  const { customerNotes, address, serviceId, slotID } = payload;
+
+  const isExitsService = await prisma.services.findUnique({
+    where: {
+      id: serviceId,
+    },
+    include: {
+      technician: {
+        include: {
+          profile: true,
+        },
+      },
+    },
+  });
+  if (!isExitsService) {
+    throw new AppError("Not found service", httpStatus.NOT_FOUND);
+  }
+
   const slot = await prisma.technicianAvailability.findUnique({
     where: {
       id: slotID,
+      profileId: isExitsService.technician.profile?.id,
     },
   });
+
+  if (!slot) {
+    throw new AppError(
+      "This slot is not this Technician",
+      httpStatus.BAD_REQUEST,
+    );
+  }
+
   if (!slot?.isSlotActive) {
     throw new AppError(
       "You can not Book with this slot",
@@ -24,7 +50,7 @@ const addBookingService = async (payload: IBooking, userId: string) => {
       customerNotes: customerNotes,
       address: address,
       customerId: userId,
-      technicianId: technicianId,
+      technicianId: isExitsService?.technicianId,
       serviceId: serviceId,
     },
     include: {
@@ -88,51 +114,70 @@ const technicianAcceptBooking = async (
   bookingId: string,
   technicianAccept: TechnicianEnum,
   technicianNotes: string,
+  technicianId: string,
 ) => {
-  if (technicianAccept == "ACCPECT") {
-    const findBooking = await prisma.booking.findUnique({
-      where: { id: bookingId },
+  return await prisma.$transaction(async (tx) => {
+    const booking = await tx.booking.findUnique({
+      where: { id: bookingId, technicianId: technicianId },
       include: {
         bookingTime: true,
       },
     });
 
-    if (!findBooking?.bookingTime.isSlotActive) {
+    if (!booking) {
+      throw new AppError("Booking not found", httpStatus.NOT_FOUND);
+    }
+
+    if (technicianAccept === "ACCPECT" && !booking.bookingTime.isSlotActive) {
       throw new AppError(
-        "You can not accpect booking. This slot alreay accpected",
-        httpStatus.UNAUTHORIZED,
+        "You cannot accept this booking. This slot is already booked.",
+        httpStatus.BAD_REQUEST,
       );
     }
-  }
 
-  const updateBooking = await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      technicianAccept,
-      technicianNotes,
-    },
-    include: {
-      bookingTime: true,
-      service: true,
-      customer: {
-        omit: { password: true },
-      },
-      technician: true,
-    },
-  });
+    if (technicianAccept === "ACCPECT") {
+      await tx.technicianAvailability.update({
+        where: { id: booking.bookingTime.id },
+        data: {
+          isSlotActive: false,
+        },
+      });
+    }
 
-  if (technicianAccept === "ACCPECT") {
-    await prisma.technicianAvailability.update({
-      where: { id: updateBooking.bookingTime.id },
+    if (technicianAccept === "CANCEL") {
+      await tx.technicianAvailability.update({
+        where: { id: booking.bookingTime.id },
+        data: {
+          isSlotActive: true,
+        },
+      });
+    }
+
+    const updatedBooking = await tx.booking.update({
+      where: { id: bookingId },
       data: {
-        isSlotActive: false,
+        technicianAccept,
+        technicianNotes,
+      },
+      include: {
+        bookingTime: true,
+        service: true,
+        customer: {
+          omit: {
+            password: true,
+          },
+        },
+        technician: {
+          omit: {
+            password: true,
+          },
+        },
       },
     });
-  }
 
-  return updateBooking;
+    return updatedBooking;
+  });
 };
-
 export const bookingService = {
   addBookingService,
   getAllBooking,
