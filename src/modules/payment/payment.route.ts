@@ -3,19 +3,26 @@ import { paymentController } from "./payment.controller";
 import { auth } from "../../middlewares/authRoleChecker";
 import { Role } from "../../../generated/prisma/enums";
 
-const router=Router()
-
+const router = Router();
 
 router.post(
   "/checkout",
   auth(Role.ADMIN, Role.CUSTOMER, Role.TECHNICIAN),
-  paymentController.createCheckoutSession
+  paymentController.createCheckoutSession,
 );
 
+router.get(
+  "/history",
+  auth(Role.CUSTOMER, Role.TECHNICIAN, Role.ADMIN),
+  paymentController.getPaymentsHistory,
+);
 
-// router.post(
-//   "/webhook",
-//   paymentController.stripeWebhook
-// );
+router.get(
+  "/:id",
+  auth(Role.CUSTOMER, Role.TECHNICIAN, Role.ADMIN),
+  paymentController.getSinglePaymentHistory,
+);
 
-export const paymentRoute=router
+router.post("/webhook", paymentController.stripeWebhook);
+
+export const paymentRoute = router;

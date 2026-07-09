@@ -15,5 +15,7 @@ model User {
   customerBookings   Booking[] @relation("CustomerBookings")
   technicianBookings Booking[] @relation("TechnicianBookings")
 
+  payment      Payment[]
+
   @@map("users")
 }

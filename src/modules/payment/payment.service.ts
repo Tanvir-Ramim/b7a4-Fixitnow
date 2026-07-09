@@ -5,11 +5,10 @@ import httpStatu from "http-status";
 import { stripe } from "../../lib/stripe";
 import { handleCheckoutCompleted, handlePaymentFailed } from "./payment.utils";
 import { TechnicianEnum } from "../../../generated/prisma/enums";
+import { Prisma } from "../../../generated/prisma/browser";
 
 const createCheckoutSession = async (bookingId: string, userId: string) => {
-  console.log("ami checkout a asi")
   const result = await prisma.$transaction(async (tx) => {
-    
     const booking = await tx.booking.findUnique({
       where: {
         id: bookingId,
@@ -22,6 +21,10 @@ const createCheckoutSession = async (bookingId: string, userId: string) => {
 
     if (!booking) {
       throw new AppError("Booking Not found", httpStatu.NOT_FOUND);
+    }
+
+    if (booking.isPayment) {
+      throw new AppError("Already payment", httpStatu.NOT_FOUND);
     }
 
     if (booking.technicianAccept !== TechnicianEnum.ACCPECT) {
@@ -96,6 +99,7 @@ const createCheckoutSession = async (bookingId: string, userId: string) => {
         transactionId: session.id,
         paymentIntentId: "",
         stripeCustomerId,
+        userId: booking.customerId,
         amount: booking.service.price,
         currency: "BDT",
         status: "PENDING",
@@ -116,7 +120,7 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
     signature,
     config.stripe_webhook_secret,
   );
-  console.log("ramim handlebook a dulsi service");
+
   switch (event.type) {
     case "checkout.session.completed":
       await handleCheckoutCompleted(event.data.object);
@@ -135,7 +139,47 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
   }
 };
 
+const getPaymentsHistorySerivces = async (userId: string) => {
+  const where: Prisma.PaymentWhereInput = {};
+
+  if (userId) {
+    where.userId = userId;
+  }
+
+  const paymentHistory = await prisma.payment.findMany({
+    where,
+    include: {
+      booking: true,
+      user: {
+        omit: {
+          password: true,
+        },
+      },
+    },
+  });
+
+  return paymentHistory;
+};
+const getSinglePaymentHisotry = async (id: string) => {
+
+  const singlePayment = await prisma.payment.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      booking: true,
+      user: {
+        omit: { password: true },
+      },
+    },
+  });
+
+  return singlePayment;
+};
+
 export const paymentService = {
   createCheckoutSession,
   handleWebhook,
+  getPaymentsHistorySerivces,
+  getSinglePaymentHisotry,
 };

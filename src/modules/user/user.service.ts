@@ -185,14 +185,12 @@ const deleteAvailablityService = async (
     );
   }
 
-  const result = await prisma.technicianAvailability.delete({
+  await prisma.technicianAvailability.delete({
     where: {
       profileId: profile?.id,
       id: availabilityId,
     },
   });
-
-  console.log(result);
 };
 
 export const userServices = {

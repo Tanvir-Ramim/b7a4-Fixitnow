@@ -70,7 +70,7 @@ const technicianAcceptBookingController = catchAsynce(
   async (req: Request, res: Response) => {
     const { bookingId } = req.params;
     const payload = req.body;
-    console.log(payload);
+
     if (!payload.technicianAccept) {
       throw new AppError(
         "technicianAccept value is required",

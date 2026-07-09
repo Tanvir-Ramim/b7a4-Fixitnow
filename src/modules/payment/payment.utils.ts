@@ -15,11 +15,10 @@ export const handleCheckoutCompleted = async (
     },
   });
 
-  // Optional: Update booking status here
-  // await prisma.booking.update({
-  //   where: { id: session.metadata?.bookingId! },
-  //   data: { status: "CONFIRMED" },
-  // });
+  await prisma.booking.update({
+    where: { id: session.metadata?.bookingId! },
+    data: { isPayment: true },
+  });
 };
 
 export const handlePaymentFailed = async (
@@ -33,16 +32,4 @@ export const handlePaymentFailed = async (
       status: "FAILED",
     },
   });
-
-  // Optional: Update booking status here
-  // const payment = await prisma.payment.findUnique({
-  //   where: { paymentIntentId: paymentIntent.id },
-  // });
-  //
-  // if (payment) {
-  //   await prisma.booking.update({
-  //     where: { id: payment.bookingId },
-  //     data: { status: "PAYMENT_FAILED" },
-  //   });
-  // }
 };
