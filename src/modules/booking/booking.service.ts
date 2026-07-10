@@ -17,6 +17,9 @@ const addBookingService = async (payload: IBooking, userId: string) => {
         include: {
           profile: true,
         },
+        omit: {
+          password: true,
+        },
       },
     },
   });
@@ -47,7 +50,7 @@ const addBookingService = async (payload: IBooking, userId: string) => {
 
   const booking = await prisma.booking.create({
     data: {
-      bookingId: slotID,
+      bookingTimeId: slotID,
       customerNotes: customerNotes,
       address: address,
       customerId: userId,

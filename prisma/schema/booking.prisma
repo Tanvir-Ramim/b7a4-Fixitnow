@@ -1,7 +1,7 @@
 model Booking {
   id          String   @id @default(uuid())
-  bookingId         String                   @unique
-  bookingTime           TechnicianAvailability                     @relation(fields: [bookingId], references: [id])
+  bookingTimeId         String                   @unique
+  bookingTime           TechnicianAvailability                     @relation(fields: [bookingTimeId], references: [id])
   customerNotes    String?
   technicianNotes  String?
    address          String
