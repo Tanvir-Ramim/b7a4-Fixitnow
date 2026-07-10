@@ -52,8 +52,12 @@ const createReview = async (
       bookingId: booking.id,
     },
     include: {
-      reviewer: true,
-      technician: true,
+      reviewer: {
+        omit: { password: true },
+      },
+      technician: {
+        omit: { password: false },
+      },
       booking: true,
     },
   });
