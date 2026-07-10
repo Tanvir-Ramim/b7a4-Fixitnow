@@ -1,0 +1,17 @@
+{
+    "version": 2,
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "use": "/api"
+        }
+    ],
+    "functions": 
+        {
+            "api/**/* ":{
+                "includeFiles":"generated/prisma/**"
+            }
+           
+        }
+    
+}
