@@ -24,4 +24,9 @@ router.get(
 );
 router.put("/update", auth(Role.ADMIN), AuthController.userBanController);
 
+router.post("/refresh-token", AuthController.refreshToken)
+
+
+
+
 export const authRoute = router;

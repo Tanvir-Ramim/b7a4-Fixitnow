@@ -20,7 +20,7 @@ router.delete(
 );
 router.get(
   "/",
-  auth(Role.ADMIN, Role.TECHNICIAN),
+  // auth(Role.ADMIN, Role.TECHNICIAN),
   categoryController.getAllCategorisController,
 );
 

@@ -4,7 +4,7 @@ model Booking {
   bookingTime           TechnicianAvailability                     @relation(fields: [bookingTimeId], references: [id])
   customerNotes    String?
   technicianNotes  String?
-   address          String
+  address          String
   technicianAccept TechnicianEnum  @default(INPROGRESS)
  
   isComplete       Boolean  @default(false)
@@ -19,10 +19,9 @@ model Booking {
   technician   User   @relation("TechnicianBookings", fields: [technicianId], references: [id])
 
   serviceId String
-  service   Services @relation(fields: [serviceId], references: [id])
+  service   Services @relation(fields: [serviceId], references: [id], onDelete: Cascade)  // Move Cascade here
 
   payment    Payment?
   
-  review             Review?
-
+  review      Review?
 }

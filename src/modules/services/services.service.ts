@@ -41,11 +41,14 @@ const deleteServiceServices = async (id: string) => {
 
 const getAllServicesService = async (
   name?: string,
+  userId?: string,
   categoryId?: string,
   price?: string,
+  limit: number = 10,
+  page: number = 1,
 ) => {
   const where: any = {
-    isActive: true || false,
+    isActive: true,
   };
 
   if (name) {
@@ -58,25 +61,64 @@ const getAllServicesService = async (
   if (categoryId) {
     where.categoryId = categoryId;
   }
+  if (userId) {
+    where.technicianId = userId;
+  }
 
   if (price) {
     where.price = Number(price);
   }
 
-  const services = await prisma.services.findMany({
-    where,
+  const skip = (page - 1) * limit;
+
+  const [services, total] = await Promise.all([
+    prisma.services.findMany({
+      where,
+      include: {
+        technician: {
+          omit: { password: true },
+        },
+        category: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip,
+      take: limit,
+    }),
+
+    prisma.services.count({
+      where,
+    }),
+  ]);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+    services,
+  };
+};
+const getSingleService = async (id: string) => {
+  const service = await prisma.services.findUniqueOrThrow({
+    where: { id },
     include: {
+      category: true,
       technician: {
+        include: { profile: { include: { availabilities: true } } },
         omit: { password: true },
       },
-      category: true,
     },
   });
 
-  return services;
+  return service;
 };
 export const serviceServices = {
   addServicesService,
   deleteServiceServices,
   getAllServicesService,
+  getSingleService,
 };

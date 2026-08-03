@@ -5,7 +5,6 @@ import httpStatu from "http-status";
 import { stripe } from "../../lib/stripe";
 import { handleCheckoutCompleted, handlePaymentFailed } from "./payment.utils";
 import { TechnicianEnum } from "../../../generated/prisma/enums";
-import { Prisma } from "../../../generated/prisma/browser";
 
 const createCheckoutSession = async (bookingId: string, userId: string) => {
   const result = await prisma.$transaction(async (tx) => {
@@ -24,30 +23,33 @@ const createCheckoutSession = async (bookingId: string, userId: string) => {
     }
 
     if (booking.isPayment) {
-      throw new AppError("Already payment", httpStatu.NOT_FOUND);
+      throw new AppError(
+        "This booking has already been paid.",
+        httpStatu.BAD_REQUEST,
+      );
     }
 
     if (booking.technicianAccept !== TechnicianEnum.ACCPECT) {
       throw new AppError(
-        "You can not Payment this Booking because Technician not accpect",
-        httpStatu.NOT_FOUND,
+        "You cannot pay because the technician has not accepted the booking.",
+        httpStatu.BAD_REQUEST,
       );
     }
 
     if (booking.customerId !== userId) {
       throw new AppError(
-        "This Customer not book this service",
-        httpStatu.NOT_FOUND,
+        "You are not authorized to pay for this booking.",
+        httpStatu.FORBIDDEN,
       );
     }
-
-    let stripeCustomerId: string;
 
     const payment = await tx.payment.findUnique({
       where: {
         bookingId,
       },
     });
+
+    let stripeCustomerId: string;
 
     if (payment?.stripeCustomerId) {
       stripeCustomerId = payment.stripeCustomerId;
@@ -76,7 +78,7 @@ const createCheckoutSession = async (bookingId: string, userId: string) => {
           price_data: {
             currency: "bdt",
             product_data: {
-              name: "Home Service Booking",
+              name: booking.service.title ?? "Home Service Booking",
             },
             unit_amount: booking.service.price * 100,
           },
@@ -89,22 +91,38 @@ const createCheckoutSession = async (bookingId: string, userId: string) => {
         userId: booking.customer.id,
       },
 
-      success_url: `${config.app_url}/payment/success?bookingId=${booking.id}`,
-      cancel_url: `${config.app_url}/payment/cancel?bookingId=${booking.id}`,
+      success_url: `http://localhost:3000/dashboard/booking-list`,
+      cancel_url: `${config.app_url}/dashboard/booking-list`,
     });
 
-    await tx.payment.create({
-      data: {
-        bookingId: booking.id,
-        transactionId: session.id,
-        paymentIntentId: "",
-        stripeCustomerId,
-        userId: booking.customerId,
-        amount: booking.service.price,
-        currency: "BDT",
-        status: "PENDING",
-      },
-    });
+    if (payment) {
+      await tx.payment.update({
+        where: {
+          bookingId,
+        },
+        data: {
+          transactionId: session.id,
+          paymentIntentId: "",
+          stripeCustomerId,
+          amount: booking.service.price,
+          currency: "BDT",
+          status: "PENDING",
+        },
+      });
+    } else {
+      await tx.payment.create({
+        data: {
+          bookingId: booking.id,
+          transactionId: session.id,
+          paymentIntentId: "",
+          stripeCustomerId,
+          userId: booking.customerId,
+          amount: booking.service.price,
+          currency: "BDT",
+          status: "PENDING",
+        },
+      });
+    }
 
     return session.url;
   });
@@ -113,7 +131,6 @@ const createCheckoutSession = async (bookingId: string, userId: string) => {
     paymentUrl: result,
   };
 };
-
 const handleWebhook = async (payload: Buffer, signature: string) => {
   const event = stripe.webhooks.constructEvent(
     payload,
@@ -147,7 +164,11 @@ const getPaymentsHistorySerivces = async (userId?: string) => {
         }
       : {},
     include: {
-      booking: true,
+      booking: {
+        include: { technician: {
+          omit:{password:true}
+        } },
+      },
     },
     orderBy: {
       createdAt: "desc",

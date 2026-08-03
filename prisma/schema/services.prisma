@@ -14,5 +14,5 @@ model Services {
   categoryId String
   category   Categories @relation(fields: [categoryId], references: [id])
 
-  booking Booking[]
+  booking Booking[]  
 }

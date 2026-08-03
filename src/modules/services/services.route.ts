@@ -20,5 +20,6 @@ route.delete(
 );
 
 route.get("/", serviceController.getAllServicesController);
+route.get("/:id", serviceController.getSingleServicesController);
 
 export const serviceRoute = route;

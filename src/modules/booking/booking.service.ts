@@ -7,7 +7,7 @@ import httpStatus from "http-status";
 
 const addBookingService = async (payload: IBooking, userId: string) => {
   const { customerNotes, address, serviceId, slotID } = payload;
-
+  console.log(customerNotes, address, serviceId, slotID )
   const isExitsService = await prisma.services.findUnique({
     where: {
       id: serviceId,
@@ -84,19 +84,22 @@ const getAllBooking = async (customerId?: string, technicianId?: string) => {
   return await prisma.booking.findMany({
     where,
     include: {
+      review:true,
       bookingTime: true,
       service: true,
       customer: {
         omit: {
           password: true,
         },
-      },
+      }
+      ,
       technician: {
         omit: {
           password: true,
         },
       },
     },
+    
   });
 };
 const getSingleBooking = async (id: string) => {

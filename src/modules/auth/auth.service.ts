@@ -6,7 +6,7 @@ import httpStatus from "http-status";
 import config from "../../config";
 import { ActiveStatus, Role } from "../../../generated/prisma/enums";
 import { jwtUtils } from "../../utils/jtw";
-import { SignOptions } from "jsonwebtoken";
+import { JwtPayload, SignOptions } from "jsonwebtoken";
 
 const registerAuthService = async (payload: IRegisterUser) => {
   const { name, email, password, profilePhoto, role } = payload;
@@ -50,9 +50,13 @@ const registerAuthService = async (payload: IRegisterUser) => {
 const loginAuthService = async (payload: ILoginUser) => {
   const { email, password } = payload;
 
-  const user = await prisma.user.findUniqueOrThrow({
+  const user = await prisma.user.findUnique({
     where: { email },
   });
+
+  if (!user) {
+    throw new AppError("User Not Found. Create New User", httpStatus.NOT_FOUND);
+  }
 
   if (user.activeStatus === ActiveStatus.BANNED) {
     throw new AppError(
@@ -124,11 +128,48 @@ const userBanServices = async (userId: string, activeStatus: ActiveStatus) => {
   return user;
 };
 
+const refreshToken = async (refreshToken: string) => {
+  const verifiedRefreshToken = jwtUtils.verifyToken(
+    refreshToken,
+    config.jwt_refresh_secret,
+  );
 
+  if (!verifiedRefreshToken.success) {
+    throw new Error(verifiedRefreshToken.error);
+  }
+
+  const { id } = verifiedRefreshToken.data as JwtPayload;
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
+
+  if (user.activeStatus === "BANNED") {
+    throw new Error("User is BANNED!");
+  }
+
+  const jwtPayload = {
+    id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+
+  const accessToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_access_secret,
+    config.jwt_access_expires_in as SignOptions,
+  );
+
+  return { accessToken };
+};
 
 export const authServices = {
   registerAuthService,
   loginAuthService,
   getMyProfileAuthService,
   userBanServices,
+  refreshToken,
 };

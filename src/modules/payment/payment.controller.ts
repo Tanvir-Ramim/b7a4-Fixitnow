@@ -25,7 +25,6 @@ const createCheckoutSession = catchAsynce(
 
 const stripeWebhook = catchAsynce(async (req: Request, res: Response) => {
   const signature = req.headers["stripe-signature"] as string;
-  console.log("rmim vai vai ami web hook controller a");
   await paymentService.handleWebhook(req.body, signature);
 
   sendResponse(res, {

@@ -38,7 +38,7 @@ const createReview = async (
   if (!booking.isPayment) {
     throw new AppError("Payment must be completed", httpStatus.BAD_REQUEST);
   }
-
+       console.log(booking)
   if (booking.review) {
     throw new AppError("Review already exists", httpStatus.BAD_REQUEST);
   }

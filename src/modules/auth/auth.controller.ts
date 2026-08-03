@@ -65,7 +65,6 @@ const getMyProfileController = catchAsynce(
 const userBanController = catchAsynce(
   async (req: Request, res: Response, next: NextFunction) => {
     const { userId, activeStatus } = req.body;
-    console.log(userId, activeStatus);
     if (!activeStatus || !userId) {
       throw new AppError(
         "User Id and Active Status Value Must Need",
@@ -86,9 +85,34 @@ const userBanController = catchAsynce(
   },
 );
 
+const refreshToken = catchAsynce(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    const { accessToken } = await authServices.refreshToken(refreshToken);
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Token Refreshed Successfully",
+      data: {
+        accessToken,
+      },
+    });
+  },
+);
+
 export const AuthController = {
   registerUser,
   loginUser,
   getMyProfileController,
   userBanController,
+  refreshToken,
 };

@@ -25,6 +25,8 @@ const addServicesController = catchAsynce(
 const deleteServiceController = catchAsynce(
   async (req: Request, res: Response) => {
     const { id } = req.params;
+
+  
     await serviceServices.deleteServiceServices(id as string);
 
     sendResponse(res, {
@@ -37,18 +39,43 @@ const deleteServiceController = catchAsynce(
 
 const getAllServicesController = catchAsynce(
   async (req: Request, res: Response) => {
-    const { categoryId, name, price } = req.query;
-    const services = await serviceServices.getAllServicesService(
+    const {
+      userId,
+      categoryId,
+      name,
+      price,
+      limit = "6",
+      page = "1",
+    } = req.query;
+    const result = await serviceServices.getAllServicesService(
       name as string | undefined,
+      userId as string | undefined,
       categoryId as string | undefined,
       price as string | undefined,
+      Number(limit),
+      Number(page),
     );
 
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
-      message: "Services retrive Successfully",
-      data: { services },
+      message: "Services retrieved successfully",
+      mete: result.meta,
+      data: result.services,
+    });
+  },
+);
+const getSingleServicesController = catchAsynce(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const result = await serviceServices.getSingleService(id as string);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Single Services retrieved successfully",
+      data: result,
     });
   },
 );
@@ -57,4 +84,5 @@ export const serviceController = {
   addServicesController,
   deleteServiceController,
   getAllServicesController,
+  getSingleServicesController,
 };

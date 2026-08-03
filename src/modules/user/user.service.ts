@@ -49,7 +49,7 @@ const updateProfileService = async (
           profilePhoto,
           bio,
           experience,
-          skills: updatedSkills,
+          skills: skills,
         },
       },
     },
