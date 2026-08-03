@@ -91,8 +91,8 @@ const createCheckoutSession = async (bookingId: string, userId: string) => {
         userId: booking.customer.id,
       },
 
-      success_url: `http://localhost:3000/dashboard/booking-list`,
-      cancel_url: `${config.app_url}/dashboard/booking-list`,
+      success_url: `https://fixittangail871900.vercel.app/dashboard/booking-list`,
+      cancel_url: `https://fixittangail871900.vercel.app/dashboard/booking-list`,
     });
 
     if (payment) {
